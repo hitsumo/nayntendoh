@@ -49,6 +49,14 @@ def _ask_countries(prompt="Ülke kodları (boşlukla ayır, örn: DE GB US JP)",
             print(f"  {c}: " + NO_ESHOP.get(c, "bilinmeyen ülke kodu (liste için 9)"))
 
 
+SORTS = {"1": "price", "2": "price_desc", "3": "game", "4": "country", "5": "discount"}
+
+
+def _ask_sort() -> str:
+    v = _ask("Sıralama: 1 ucuzdan pahalıya, 2 pahalıdan ucuza, 3 oyuna göre, 4 ülkeye göre, 5 indirim oranı", "1")
+    return SORTS.get(v, v if v in SORTS.values() else "price")
+
+
 def _build(choice: str) -> list[str] | None:
     """Turn a menu choice into CLI arguments, asking for the details."""
     if choice == "1":
@@ -83,6 +91,7 @@ def _build(choice: str) -> list[str] | None:
         cur = _ask("Çevrilecek para birimi", "TRY")
         if cur:
             args += ["--convert", cur.upper()]
+        args += ["--sort", _ask_sort()]
         return args
     if choice == "7":
         args = ["history", _ask("NSUID")]
@@ -165,5 +174,10 @@ def _prices_after_search(main, text: str) -> None:
     argv = ["compare", text, "--country", *countries, "--fetch"]
     if cur:
         argv += ["--convert", cur.upper()]
+    try:
+        argv += ["--sort", _ask_sort()]
+    except KeyboardInterrupt:
+        print()
+        return
     print("  > eshop " + " ".join(shlex.quote(a) for a in argv))
     _run(main, argv)

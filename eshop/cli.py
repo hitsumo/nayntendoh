@@ -250,12 +250,23 @@ def cmd_compare(args, db: Database) -> int:
         for p in db.latest_prices_for(g["nsuid"]):
             if countries and p["country"] not in countries:
                 continue
+            if args.status != "all" and p["sales_status"] != args.status:
+                continue
             eff = p["discount_price"] if p["discount_price"] is not None else p["regular_price"]
             conv_val = conv.convert(eff, p["currency"]) if conv else None
-            rows.append((conv_val if conv_val is not None else float("inf"), [
+            pct = (1 - p["discount_price"] / p["regular_price"]) if (
+                p["discount_price"] is not None and p["regular_price"]) else 0.0
+            key = {
+                "title": g["title"].lower(),
+                "country": p["country"],
+                # cross-currency order needs --convert; otherwise group by currency
+                "price": (conv_val if conv_val is not None else float("inf"),
+                          p["currency"], eff if eff is not None else float("inf")),
+                "discount": pct,
+            }
+            rows.append((key, [
                 p["country"], g["region"].upper(), g["nsuid"], g["title"], p["sales_status"],
-                p["regular_price_text"], p["discount_price_text"],
-                fmt_pct(p["regular_price"], p["discount_price"]),
+                p["regular_price_text"], p["discount_price_text"], fmt_pct(p["regular_price"], p["discount_price"]),
                 *([f"{conv_val:,.2f}" if conv_val is not None else "n/a"] if conv else []),
                 fmt_date(p["discount_end"]), fmt_date(p["last_seen"]),
             ]))
@@ -263,8 +274,15 @@ def cmd_compare(args, db: Database) -> int:
         titles = ", ".join(f"{g['title']} [{g['region'].upper()} {g['nsuid']}]" for g in games)
         log(f"Found {titles} but no stored prices. Add --country XX --fetch to look them up now.")
         return 1
-    if conv:
-        rows.sort(key=lambda t: t[0])
+    sorters = {
+        "price": lambda k: k["price"],
+        "price_desc": lambda k: (-k["price"][0] if k["price"][0] != float("inf") else float("inf"),
+                                 k["price"][1], -k["price"][2] if k["price"][2] != float("inf") else 0),
+        "game": lambda k: (k["title"], k["price"]),
+        "country": lambda k: (k["country"], k["title"]),
+        "discount": lambda k: (-k["discount"], k["price"]),
+    }
+    rows.sort(key=lambda t: sorters[args.sort](t[0]))
     emit(args, headers, [r for _, r in rows], numeric=(5, 6, 7, 8) if conv else (5, 6, 7))
     return 0
 
@@ -359,7 +377,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("query", help="title text or NSUID")
     s.add_argument("--country", nargs="*", help="restrict to these countries")
     s.add_argument("--fetch", action="store_true", help="fetch fresh prices for the listed countries first")
-    s.add_argument("--convert", metavar="CUR", help="convert all prices to this currency and sort by it")
+    s.add_argument("--convert", metavar="CUR", help="convert all prices to this currency (needed to order different currencies)")
+    s.add_argument("--sort", choices=["price", "price_desc", "game", "country", "discount"], default="price",
+                   help="price: cheapest first (default); game: grouped by title; country; discount: biggest cut first")
+    s.add_argument("--status", default="onsale",
+                   help="sales status to show: onsale (default), unreleased, not_found, sales_termination, all")
     s.add_argument("--limit", type=int, default=10, help="max title matches (default 10)")
     add_output_opts(s)
     s.set_defaults(func=cmd_compare)
