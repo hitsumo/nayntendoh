@@ -1,0 +1,3 @@
+# nayntendoh
+
+Proje başlangıcı.
