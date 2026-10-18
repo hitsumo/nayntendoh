@@ -12,7 +12,9 @@ fx_rates        cached currency conversion rates
 
 from __future__ import annotations
 
+import difflib
 import os
+import re
 import sqlite3
 from datetime import datetime, timezone
 from typing import Iterable
@@ -169,6 +171,33 @@ class Database:
 
     def get_game(self, nsuid: str) -> sqlite3.Row | None:
         return self.conn.execute("SELECT * FROM games WHERE nsuid=?", (nsuid,)).fetchone()
+
+    _words: set[str] | None = None
+
+    def suggest(self, text: str) -> str | None:
+        """Spelling suggestion for a failed title search ('oddysey' -> 'odyssey').
+
+        Each query word that does not occur in any title is replaced by the
+        closest word that does. Returns the corrected query, or None when
+        nothing better was found."""
+        if self._words is None:
+            words: set[str] = set()
+            for (title,) in self.conn.execute("SELECT title FROM games"):
+                words.update(re.findall(r"[^\W_]+", title.lower()))
+            self._words = words
+        out, changed = [], False
+        for w in text.split():
+            lw = w.lower()
+            if lw in self._words or len(lw) < 3:
+                out.append(w)
+                continue
+            match = difflib.get_close_matches(lw, self._words, n=1, cutoff=0.75)
+            if match:
+                out.append(match[0])
+                changed = True
+            else:
+                out.append(w)
+        return " ".join(out) if changed else None
 
     # -- prices ------------------------------------------------------------
 

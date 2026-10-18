@@ -9,6 +9,7 @@ import shlex
 import sys
 
 from . import __version__
+from .db import DEFAULT_DB, Database
 from .regions import COUNTRIES, NO_ESHOP
 
 MENU = """
@@ -142,21 +143,50 @@ def run(main) -> int:
                 continue
             if argv and argv[0] == "eshop":
                 argv = argv[1:]
-        _run(main, argv)
+        code = _run(main, argv)
         if line == "5" and argv and argv[0] == "search":
-            _prices_after_search(main, argv[1])
+            text = argv[1]
+            if code != 0:
+                text = _retry_with_suggestion(main, text)
+            if text:
+                _prices_after_search(main, text)
+            else:
+                print("  Sonuç yok, menüye dönülüyor.")
         print()
 
 
-def _run(main, argv: list[str]) -> None:
+def _run(main, argv: list[str]) -> int:
+    """Run one CLI command; returns its exit code (non-zero = no result/error)."""
     try:
-        main(argv)
-    except SystemExit:
-        pass  # argparse already printed its message
+        return int(main(argv) or 0)
+    except SystemExit as exc:
+        return int(exc.code or 0) if isinstance(exc.code, int) else 1
     except KeyboardInterrupt:
         print("\n  iptal edildi")
+        return 130
     except Exception as exc:  # keep the window alive on unexpected errors
         print(f"  hata: {exc}", file=sys.stderr)
+        return 1
+
+
+def _retry_with_suggestion(main, text: str) -> str | None:
+    """After an empty search, offer the spelling suggestion. Returns the text
+    that produced results, or None."""
+    try:
+        db = Database(DEFAULT_DB)
+        try:
+            hint = db.suggest(text)
+        finally:
+            db.close()
+        if not hint:
+            return None
+        if not _ask(f"'{hint}' ile tekrar aransın mı? (e/h)", "e").lower().startswith("e"):
+            return None
+    except KeyboardInterrupt:
+        print()
+        return None
+    print("  > eshop search " + shlex.quote(hint))
+    return hint if _run(main, ["search", hint]) == 0 else None
 
 
 def _prices_after_search(main, text: str) -> None:

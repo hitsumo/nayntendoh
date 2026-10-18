@@ -208,7 +208,11 @@ def cmd_search(args, db: Database) -> int:
     out = [[g["nsuid"], g["region"].upper(), g["title"], g["publisher"], g["release_date"],
             g["platform"].replace("Nintendo ", ""), g["product_code"]] for g in rows]
     if not out:
-        log("No matching titles. Has the catalog been fetched? (`eshop catalog`)")
+        if db.game_count() == 0:
+            log("The catalog is empty. Run `eshop catalog` first.")
+        else:
+            hint = db.suggest(args.text)
+            log(f"No matching titles for {args.text!r}." + (f" Did you mean {hint!r}?" if hint else ""))
         return 1
     emit(args, ["NSUID", "Catalog", "Title", "Publisher", "Release", "Platform", "Code"], out)
     return 0
