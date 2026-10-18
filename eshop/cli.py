@@ -6,7 +6,7 @@ import argparse
 import sys
 from datetime import datetime
 
-from . import __version__
+from . import __author__, __url__, __version__
 from .catalog import FETCHERS
 from .db import DEFAULT_DB, Database
 from .fx import Converter
@@ -311,6 +311,12 @@ def cmd_history(args, db: Database) -> int:
     return 0
 
 
+def cmd_about(args, db: Database) -> int:
+    from .about import text
+    print(text())
+    return 0
+
+
 def cmd_status(args, db: Database) -> int:
     print(f"Database: {db.path}")
     for region, name in REGIONS.items():
@@ -336,7 +342,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="eshop",
                                 description="Track Nintendo Switch eShop catalogs and prices per country.")
     p.add_argument("--db", default=DEFAULT_DB, help=f"SQLite file (default: {DEFAULT_DB}, or $ESHOP_DB)")
-    p.add_argument("--version", action="version", version=f"eshop {__version__}")
+    p.add_argument("--version", action="version",
+                   version=f"eshop {__version__} · {__author__} · {__url__}")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("countries", help="list supported countries and what is stored for them")
@@ -402,6 +409,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("status", help="show what the local database contains")
     s.set_defaults(func=cmd_status)
+
+    s = sub.add_parser("about", help="what this program does and who made it")
+    s.set_defaults(func=cmd_about)
     return p
 
 

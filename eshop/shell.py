@@ -8,7 +8,7 @@ from __future__ import annotations
 import shlex
 import sys
 
-from . import __version__
+from . import __author__, __url__, __version__
 from .db import DEFAULT_DB, Database
 from .regions import COUNTRIES, NO_ESHOP
 
@@ -24,11 +24,18 @@ MENU = """
 │ 8  Veritabanı durumu            (status)                                         │
 │ 9  Desteklenen ülkeler          (countries)                                      │
 │ ?  Bir komutun yardımı          (örn: ? list)                                    │
+│ i  Hakkında                     (about)                                          │
 │ 0  Çıkış                                                                         │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ {author:<80} │
 └──────────────────────────────────────────────────────────────────────────────────┘
 İstersen menü numarası yerine doğrudan komut da yazabilirsin:
   list --country DE --on-sale --sort discount --convert TRY
 """
+
+
+def _menu() -> str:
+    return MENU.format(ver=__version__, author=f"{__author__} · {__url__}")
 
 
 def _ask(prompt: str, default: str = "") -> str:
@@ -109,7 +116,7 @@ def _build(choice: str) -> list[str] | None:
 
 def run(main) -> int:
     """Interactive loop. `main` is the normal CLI entry point."""
-    print(MENU.format(ver=__version__))
+    print(_menu())
     while True:
         try:
             line = input("eshop> ").strip()
@@ -121,7 +128,12 @@ def run(main) -> int:
         if line in ("0", "q", "quit", "exit", "çıkış", "cikis"):
             return 0
         if line in ("m", "menu", "menü", "h", "help", "?"):
-            print(MENU.format(ver=__version__))
+            print(_menu())
+            continue
+        if line in ("i", "hakkında", "hakkinda", "about"):
+            argv = ["about"]
+            _run(main, argv)
+            print()
             continue
         if line.startswith("?"):
             argv = [line[1:].strip(), "--help"]

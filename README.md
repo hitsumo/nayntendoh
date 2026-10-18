@@ -133,3 +133,10 @@ Veritabanı dosyası varsayılan olarak çalışma dizinindeki `eshop.sqlite3`; 
 * Hong Kong / Kore / Tayvan katalogları henüz desteklenmiyor.
 * Fiyatlar vergi dahil mağaza fiyatıdır; Gold Point / kampanya kodları hesaba katılmaz.
 * Nintendo'nun uç noktaları resmî değildir ve değişebilir.
+
+## Yazar
+
+**Okan Sümer** · [sicakcikolata.com](https://sicakcikolata.com)
+
+Bu program Nintendo ile bağlantılı değildir; veriler Nintendo'nun herkese açık
+mağaza servislerinden alınır.
