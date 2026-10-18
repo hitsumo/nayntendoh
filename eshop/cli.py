@@ -376,8 +376,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _utf8_console() -> None:
-    """Windows consoles default to a legacy code page; make sure Japanese and
-    accented titles do not crash the output."""
+    """Make sure Japanese and accented titles can be written and displayed."""
+    from .winconsole import setup
+    setup()
     for stream in (sys.stdout, sys.stderr):
         try:
             stream.reconfigure(encoding="utf-8", errors="replace")

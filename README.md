@@ -37,6 +37,11 @@ Komut satırından kullanım Python sürümüyle aynıdır, sadece `python -m es
 .\eshop.exe list --country DE --on-sale --sort discount --convert TRY
 ```
 
+**Japonca başlıklar**: Windows'un klasik konsol penceresi Japonca karakter içeren
+yazı tipi kullanmaz. Program açılışta pencereyi UTF-8'e ve "MS Gothic" yazı tipine
+geçirir; farklı bir yazı tipi için `ESHOP_FONT` ortam değişkenini kullanın
+(`ESHOP_FONT=none` dokunmaz). Windows Terminal kullanıyorsanız buna gerek yoktur.
+
 Kendiniz derlemek isterseniz Windows'ta `build.ps1` dosyasını çalıştırın.
 
 ### Kaynak koddan (Python)

@@ -1,3 +1,3 @@
 """Nintendo Switch eShop catalog and price tracker."""
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
