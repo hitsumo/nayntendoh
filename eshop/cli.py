@@ -200,6 +200,8 @@ def cmd_list(args, db: Database) -> int:
         log(f"No prices stored for {country}. Run `eshop update --country {country}` first.")
         return 1
     emit(args, headers, out, numeric=(5, 6, 7, 8) if conv else (5, 6, 7))
+    if conv and args.format == "table" and not args.output:
+        print(conv.note())
     return 0
 
 
@@ -288,6 +290,8 @@ def cmd_compare(args, db: Database) -> int:
     }
     rows.sort(key=lambda t: sorters[args.sort](t[0]))
     emit(args, headers, [r for _, r in rows], numeric=(5, 6, 7, 8) if conv else (5, 6, 7))
+    if conv and args.format == "table" and not args.output:
+        print(conv.note())
     return 0
 
 

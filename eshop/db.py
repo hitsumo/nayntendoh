@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS fx_rates (
     quote      TEXT NOT NULL,
     rate       REAL NOT NULL,
     fetched_at TEXT NOT NULL,
+    rate_date  TEXT DEFAULT '',
     PRIMARY KEY (base, quote)
 );
 
@@ -105,6 +106,14 @@ class Database:
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.execute("PRAGMA foreign_keys=ON")
         self.conn.executescript(SCHEMA)
+        self._migrate()
+
+    def _migrate(self):
+        """Add columns introduced after the first release to older databases."""
+        cols = {r[1] for r in self.conn.execute("PRAGMA table_info(fx_rates)")}
+        if "rate_date" not in cols:
+            with self.conn:
+                self.conn.execute("ALTER TABLE fx_rates ADD COLUMN rate_date TEXT DEFAULT ''")
 
     def close(self):
         self.conn.close()
@@ -298,9 +307,9 @@ class Database:
         return self.conn.execute(
             "SELECT rate, fetched_at FROM fx_rates WHERE base=? AND quote=?", (base, quote)).fetchone()
 
-    def set_fx(self, base: str, rates: dict[str, float]):
+    def set_fx(self, base: str, rates: dict[str, float], rate_date: str = ""):
         ts = now()
         with self.conn:
             self.conn.executemany(
-                "INSERT OR REPLACE INTO fx_rates (base, quote, rate, fetched_at) VALUES (?,?,?,?)",
-                [(base, q, r, ts) for q, r in rates.items()])
+                "INSERT OR REPLACE INTO fx_rates (base, quote, rate, fetched_at, rate_date) VALUES (?,?,?,?,?)",
+                [(base, q, r, ts, rate_date) for q, r in rates.items()])

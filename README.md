@@ -118,8 +118,10 @@ Veritabanı dosyası varsayılan olarak çalışma dizinindeki `eshop.sqlite3`; 
 * **Geçmiş**: Aynı (oyun, ülke) için fiyat/durum değişmediyse yeni satır yazılmaz, mevcut
   satırın `last_seen` tarihi güncellenir. Değiştiyse yeni satır eklenir. Böylece geçmiş
   kompakt kalır.
-* **Döviz**: `--convert` için ücretsiz Frankfurter API (ECB kurları) kullanılır, kurlar
-  24 saat önbelleklenir. ECB'nin yayımlamadığı para birimleri (ARS, CLP, COP, PEN, RUB)
+* **Döviz**: `--convert` için ücretsiz Frankfurter API (Avrupa Merkez Bankası referans
+  kurları) kullanılır. ECB kurları her iş günü bir kez yayımlar (hafta sonu güncellenmez);
+  program kurları 24 saat önbellekler ve tablonun altında hangi tarihin kuru olduğunu yazar.
+  Bunlar piyasa/banka kuru değildir, kartla alışverişte bankanızın kuru uygulanır. ECB'nin yayımlamadığı para birimleri (ARS, CLP, COP, PEN, RUB)
   için `n/a` görünür.
 
 ## Sınırlamalar
