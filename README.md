@@ -26,7 +26,11 @@ sürüm derler. İndirmek için:
 `v1.0` gibi bir etiket (tag) atıldığında aynı dosyalar otomatik olarak **Releases**
 sayfasına da yüklenir.
 
-Komutlar Python sürümüyle aynıdır, sadece `python -m eshop` yerine `eshop.exe` yazılır:
+`eshop.exe`'ye **çift tıklayınca** menülü etkileşimli mod açılır: numara seçerek
+katalog indirebilir, fiyat güncelleyebilir, listeleyebilir ve karşılaştırabilirsiniz;
+pencere siz çıkana kadar açık kalır. Aynı pencerede normal komutlar da yazılabilir.
+
+Komut satırından kullanım Python sürümüyle aynıdır, sadece `python -m eshop` yerine `eshop.exe` yazılır:
 
 ```powershell
 .\eshop.exe update --country DE GB US

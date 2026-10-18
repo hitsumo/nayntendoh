@@ -345,7 +345,24 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _utf8_console() -> None:
+    """Windows consoles default to a legacy code page; make sure Japanese and
+    accented titles do not crash the output."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv=None) -> int:
+    _utf8_console()
+    if argv is None:
+        argv = sys.argv[1:]
+    if not argv:
+        # started without arguments (e.g. double-click): interactive mode
+        from .shell import run
+        return run(main)
     args = build_parser().parse_args(argv)
     db = Database(args.db)
     try:
