@@ -67,6 +67,11 @@ CREATE TABLE IF NOT EXISTS fx_rates (
     PRIMARY KEY (base, quote)
 );
 
+CREATE TABLE IF NOT EXISTS meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+);
+
 -- latest price row per (nsuid, country)
 CREATE VIEW IF NOT EXISTS latest_prices AS
 SELECT p.*
@@ -300,6 +305,16 @@ class Database:
         return [tuple(r) for r in self.conn.execute("""
             SELECT country, COUNT(*), MAX(last_seen) FROM latest_prices
             GROUP BY country ORDER BY country""")]
+
+    # -- meta --------------------------------------------------------------
+
+    def get_meta(self, key: str) -> str | None:
+        row = self.conn.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
+        return row[0] if row else None
+
+    def set_meta(self, key: str, value: str) -> None:
+        with self.conn:
+            self.conn.execute("INSERT OR REPLACE INTO meta (key, value) VALUES (?,?)", (key, value))
 
     # -- fx ----------------------------------------------------------------
 

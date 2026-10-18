@@ -311,6 +311,21 @@ def cmd_history(args, db: Database) -> int:
     return 0
 
 
+def cmd_check_update(args, db: Database) -> int:
+    from .updates import check, notice
+    info = check(db, force=True)
+    if not info:
+        log("Sürüm bilgisi alınamadı (internet bağlantısını kontrol edin).")
+        return 1
+    print(notice(info))
+    if info["is_newer"]:
+        print(f"Sürüm sayfası: {info['page']}")
+        if args.open:
+            import webbrowser
+            webbrowser.open(info["asset"])
+    return 0
+
+
 def cmd_about(args, db: Database) -> int:
     from .about import text
     print(text())
@@ -412,6 +427,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("about", help="what this program does and who made it")
     s.set_defaults(func=cmd_about)
+
+    s = sub.add_parser("check-update", help="check GitHub for a newer release")
+    s.add_argument("--open", action="store_true", help="open the download in the browser if newer")
+    s.set_defaults(func=cmd_check_update)
     return p
 
 

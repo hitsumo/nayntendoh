@@ -25,6 +25,7 @@ MENU = """
 │ 9  Desteklenen ülkeler          (countries)                                      │
 │ ?  Bir komutun yardımı          (örn: ? list)                                    │
 │ i  Hakkında                     (about)                                          │
+│ u  Güncelleme kontrolü          (check-update)                                   │
 │ 0  Çıkış                                                                         │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ {author:<80} │
@@ -114,9 +115,26 @@ def _build(choice: str) -> list[str] | None:
     return None
 
 
+def _startup_update_notice() -> None:
+    """Print a one-line notice if GitHub has a newer release (silent on failure)."""
+    try:
+        from .updates import check, notice
+        db = Database(DEFAULT_DB)
+        try:
+            info = check(db)
+        finally:
+            db.close()
+        if info and info["is_newer"]:
+            print("  ! " + notice(info))
+            print()
+    except Exception:
+        pass
+
+
 def run(main) -> int:
     """Interactive loop. `main` is the normal CLI entry point."""
     print(_menu())
+    _startup_update_notice()
     while True:
         try:
             line = input("eshop> ").strip()
@@ -131,8 +149,11 @@ def run(main) -> int:
             print(_menu())
             continue
         if line in ("i", "hakkında", "hakkinda", "about"):
-            argv = ["about"]
-            _run(main, argv)
+            _run(main, ["about"])
+            print()
+            continue
+        if line in ("u", "güncelle", "guncelle", "update-check", "check-update"):
+            _run(main, ["check-update", "--open"])
             print()
             continue
         if line.startswith("?"):
