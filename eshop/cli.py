@@ -91,9 +91,14 @@ def parse_countries(values: list[str]) -> list[str]:
 def emit(args, headers, rows, numeric=()):
     writer = WRITERS[args.format]
     out = open(args.output, "w", encoding="utf-8", newline="") if getattr(args, "output", None) else None
+    flex = [i for i, h in enumerate(headers) if h == "Title"] or None
+    # columns that may be dropped, least important first, when the console is narrow
+    optional = [headers.index(h) for h in ("Catalog", "Status", "Code", "Publisher",
+                                           "Sale ends", "Platform", "Release", "Price seen")
+                if h in headers]
     try:
         if args.format == "table":
-            writer(headers, rows, numeric=numeric, file=out)
+            writer(headers, rows, numeric=numeric, flex=flex, optional=optional, file=out)
         else:
             writer(headers, rows, file=out)
     finally:
