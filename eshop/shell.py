@@ -17,7 +17,7 @@ MENU = """
 │ 2  Fiyatları güncelle           (prices)          ülke başına ~1 dk              │
 │ 3  Ülkedeki oyunları listele    (list)                                           │
 │ 4  Sadece indirimdekiler        (list --on-sale)                                 │
-│ 5  Oyun ara                     (search)                                         │
+│ 5  Oyun ara + fiyatına bak      (search, compare)                                │
 │ 6  Ülkeler arası karşılaştır    (compare)                                        │
 │ 7  Fiyat geçmişi                (history)                                        │
 │ 8  Veritabanı durumu            (status)                                         │
@@ -131,12 +131,37 @@ def run(main) -> int:
                 continue
             if argv and argv[0] == "eshop":
                 argv = argv[1:]
-        try:
-            main(argv)
-        except SystemExit:
-            pass  # argparse already printed its message
-        except KeyboardInterrupt:
-            print("\n  iptal edildi")
-        except Exception as exc:  # keep the window alive on unexpected errors
-            print(f"  hata: {exc}", file=sys.stderr)
+        _run(main, argv)
+        if line == "5" and argv and argv[0] == "search":
+            _prices_after_search(main, argv[1])
         print()
+
+
+def _run(main, argv: list[str]) -> None:
+    try:
+        main(argv)
+    except SystemExit:
+        pass  # argparse already printed its message
+    except KeyboardInterrupt:
+        print("\n  iptal edildi")
+    except Exception as exc:  # keep the window alive on unexpected errors
+        print(f"  hata: {exc}", file=sys.stderr)
+
+
+def _prices_after_search(main, text: str) -> None:
+    """After a catalog search, offer to look the prices up right away."""
+    print()
+    try:
+        raw = _ask("Bu oyunların fiyatlarına bakmak için ülke kodları yaz (boş = geç), örn: DE GB US JP")
+        if not raw:
+            return
+        countries = raw.upper().replace(",", " ").split()
+        cur = _ask("Çevrilecek para birimi", "TRY")
+    except KeyboardInterrupt:
+        print()
+        return
+    argv = ["compare", text, "--country", *countries, "--fetch"]
+    if cur:
+        argv += ["--convert", cur.upper()]
+    print("  > eshop " + " ".join(shlex.quote(a) for a in argv))
+    _run(main, argv)

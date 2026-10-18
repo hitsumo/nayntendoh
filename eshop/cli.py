@@ -21,8 +21,18 @@ def log(msg: str) -> None:
     print(msg, file=sys.stderr)
 
 
+_progress_width = 0
+
+
 def progress_line(msg: str) -> None:
-    print("\r\033[K" + msg, end="", file=sys.stderr, flush=True)
+    """Overwrite the current console line without ANSI escapes (the legacy
+    Windows console shows them as garbage)."""
+    global _progress_width
+    pad = " " * max(0, _progress_width - len(msg))
+    print("\r" + msg + pad, end="", file=sys.stderr, flush=True)
+    _progress_width = len(msg)
+    if not msg:
+        _progress_width = 0
 
 
 def fmt_date(iso: str | None) -> str:
