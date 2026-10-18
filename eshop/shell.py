@@ -9,7 +9,7 @@ import shlex
 import sys
 
 from . import __version__
-from .regions import COUNTRIES
+from .regions import COUNTRIES, NO_ESHOP
 
 MENU = """
 ┌─ eshop {ver} ─ Nintendo Switch eShop ülke / fiyat takipçisi ─────────────────┐
@@ -41,10 +41,12 @@ def _ask(prompt: str, default: str = "") -> str:
 def _ask_countries(prompt="Ülke kodları (boşlukla ayır, örn: DE GB US JP)", default="DE") -> list[str]:
     while True:
         raw = _ask(prompt, default).upper().replace(",", " ").split()
-        bad = [c for c in raw if c not in COUNTRIES and c not in ("ALL", "EU", "US", "JP")]
+        from .cli import REGION_ALIASES
+        bad = [c for c in raw if c not in COUNTRIES and c not in REGION_ALIASES and c != "ALL"]
         if not bad:
             return raw
-        print(f"  Bilinmeyen ülke kodu: {' '.join(bad)}  (liste için 9)")
+        for c in bad:
+            print(f"  {c}: " + NO_ESHOP.get(c, "bilinmeyen ülke kodu (liste için 9)"))
 
 
 def _build(choice: str) -> list[str] | None:
@@ -152,7 +154,7 @@ def _prices_after_search(main, text: str) -> None:
     """After a catalog search, offer to look the prices up right away."""
     print()
     try:
-        raw = _ask("Bu oyunların fiyatlarına bakmak için ülke kodları yaz (boş = geç), örn: DE GB US JP")
+        raw = _ask("Fiyatlarına bakmak için ülke kodları yaz (boş = geç). Örn: DE GB US JP, tüm Avrupa için EU, hepsi için ALL")
         if not raw:
             return
         countries = raw.upper().replace(",", " ").split()

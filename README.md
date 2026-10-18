@@ -85,7 +85,7 @@ python -m eshop countries
 |---|---|
 | `countries` | Desteklenen ülkeler, para birimleri, hangi kataloğu kullandıkları ve veritabanındaki durum |
 | `catalog [--region eu us jp] [--include-dlc]` | Oyun kataloğunu indir / güncelle |
-| `prices --country … [--search X] [--workers N]` | Ülkelerin güncel fiyatlarını çek. `--country eu`, `us`, `jp` veya `all` ile toplu |
+| `prices --country … [--search X] [--workers N]` | Ülkelerin güncel fiyatlarını çek. `--country eu`, `americas`, `japan` veya `all` ile toplu |
 | `update --country …` | `catalog` + `prices` |
 | `list --country XX` | Ülkedeki oyunları en son fiyatlarıyla listele. Filtreler: `--search`, `--platform`, `--on-sale`, `--status all`; sıralama: `--sort title/price/price_desc/date/discount/updated`; `--convert TRY` ile ek sütun |
 | `search METİN [--region]` | Yerel katalogda başlık / NSUID / ürün kodu ara |

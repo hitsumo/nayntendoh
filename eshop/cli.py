@@ -58,17 +58,32 @@ def fmt_money(value: float | None, currency: str) -> str:
     return f"{value:,.2f} {currency}"
 
 
+REGION_ALIASES = {
+    "EU": "eu", "EUROPE": "eu", "AVRUPA": "eu",
+    "AMERICAS": "us", "AMERICA": "us", "AMERIKA": "us", "NA": "us",
+    "JAPAN": "jp", "JAPONYA": "jp",
+}
+
+
 def parse_countries(values: list[str]) -> list[str]:
+    """Expand country codes, region shortcuts (eu / americas / japan) and 'all'.
+
+    Country codes win over region names, so 'US' is the United States and
+    'JP' is Japan; 'EU', 'AMERICAS' and 'ALL' expand to whole catalogs.
+    """
     out: list[str] = []
     for v in values:
         for c in v.replace(",", " ").split():
             c = c.upper()
             if c == "ALL":
                 out.extend(COUNTRIES)
-            elif c in REGIONS:
-                out.extend(k for k, (r, _, _) in COUNTRIES.items() if r == c)
+            elif c in COUNTRIES:
+                out.append(c)
+            elif c in REGION_ALIASES:
+                region = REGION_ALIASES[c]
+                out.extend(k for k, (r, _, _) in COUNTRIES.items() if r == region)
             else:
-                region_of(c)  # validates, raises for unknown / no-eshop
+                region_of(c)  # raises a helpful ValueError
                 out.append(c)
     return list(dict.fromkeys(out))
 
@@ -303,7 +318,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("prices", help="fetch current prices for one or more countries")
     s.add_argument("--country", nargs="+", required=True,
-                   help="country codes (DE GB US JP …), a region (eu/us/jp) or 'all'")
+                   help="country codes (DE GB US JP …), a region (eu / americas / japan) or 'all'")
     s.add_argument("--search", help="only titles whose name contains this text")
     s.add_argument("--workers", type=int, default=6, help="parallel requests (default 6)")
     s.set_defaults(func=cmd_prices)
