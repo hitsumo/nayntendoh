@@ -14,6 +14,29 @@ sorusu doğrudan cevaplanır.
 
 ## Kurulum
 
+### Hazır .exe (Python gerekmez)
+
+GitHub Actions her push'ta Windows, Linux ve macOS için tek dosyalık portable
+sürüm derler. İndirmek için:
+
+1. Depoda **Actions** sekmesine girin, en son yeşil "Build portable executables" çalışmasını açın.
+2. Sayfanın altındaki **Artifacts** bölümünden `eshop-windows-x64` dosyasını indirin ve zip'i açın.
+3. `eshop.exe`'yi istediğiniz klasöre koyun; veritabanı (`eshop.sqlite3`) komutu çalıştırdığınız klasörde oluşur.
+
+`v1.0` gibi bir etiket (tag) atıldığında aynı dosyalar otomatik olarak **Releases**
+sayfasına da yüklenir.
+
+Komutlar Python sürümüyle aynıdır, sadece `python -m eshop` yerine `eshop.exe` yazılır:
+
+```powershell
+.\eshop.exe update --country DE GB US
+.\eshop.exe list --country DE --on-sale --sort discount --convert TRY
+```
+
+Kendiniz derlemek isterseniz Windows'ta `build.ps1` dosyasını çalıştırın.
+
+### Kaynak koddan (Python)
+
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
